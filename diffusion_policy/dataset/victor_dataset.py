@@ -10,7 +10,7 @@ from diffusion_policy.model.common.normalizer import LinearNormalizer
 from diffusion_policy.dataset.base_dataset import BaseImageDataset
 from diffusion_policy.common.normalize_util import get_image_range_normalizer
 
-class PushTImageDataset(BaseImageDataset):
+class VictorDataset(BaseImageDataset):
     def __init__(self,
             zarr_path, 
             horizon=1,
@@ -23,7 +23,7 @@ class PushTImageDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['img', 'state', 'action'])
+            zarr_path, keys=['wrench', 'action'])
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -60,11 +60,11 @@ class PushTImageDataset(BaseImageDataset):
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
-            'agent_pos': self.replay_buffer['state'][...,:2]
+            'wrench': self.replay_buffer['wrench']#[...,:2]
         }
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)
-        normalizer['image'] = get_image_range_normalizer()
+        # normalizer['image'] = get_image_range_normali/home/KirillT/robot_tool_2025S/datasets/d1.zarrzer()
         return normalizer
 
     def __len__(self) -> int:
@@ -92,8 +92,8 @@ class PushTImageDataset(BaseImageDataset):
 
 def test():
     import os
-    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/pusht/pusht_cchi_v7_replay.zarr')
-    dataset = PushTImageDataset(zarr_path, horizon=16)
+    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/d1.zarr')
+    dataset = VictorDataset(zarr_path, horizon=16)
     print(dataset.replay_buffer.data)
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
