@@ -23,7 +23,7 @@ class VictorDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['wrench', 'action', 'gripper_status', 'image'])   # TODO include gripper data
+            zarr_path, keys=["robot_act", "robot_obs", 'image'])   # TODO include gripper data
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -58,17 +58,19 @@ class VictorDataset(BaseImageDataset):
         return val_set
 
     # TODO ? 
+    # TODO -> feels WRONG to normalize all data dimensions in the same way (even when they exist on different bounds)
     def get_normalizer(self, mode='limits', **kwargs):
-
         data = {
-            'action': self.replay_buffer['action'],
+            'action': self.replay_buffer['robot_act'],
+            'robot_obs'   : self.replay_buffer['robot_obs']
             # NOTE for future reference: original grabs the first 2 columns, which correspond to agent_x, agent_y
-            'wrench': self.replay_buffer['wrench'],#[...,:2]
-            'gripper_status': self.replay_buffer['gripper_status']
+            # 'wrench': self.replay_buffer['wrench'],#[...,:2]
+            # 'gripper_status': self.replay_buffer['gripper_status']
         }
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)   # TODO unsure about keeping last_n_dims the same
         normalizer['image'] = get_image_range_normalizer()  # TODO unsure?
+        print(normalizer)
         return normalizer
 
     def __len__(self) -> int:
@@ -77,14 +79,14 @@ class VictorDataset(BaseImageDataset):
     # TODO
     def _sample_to_data(self, sample):
         # agent_pos = sample['state'][:,:].astype(np.float32) # (agent_posx2, block_posex3)
-        motion_status = sample['action'].astype(np.float32)
-        wrench = sample['wrench'].astype(np.float32)
-        gripper_status = sample['gripper_status'].astype(np.float32)
-        # image = np.moveaxis(sample['image'],-1,1)/255
-        image = sample['image']
-
-        robot_obs = np.concatenate([motion_status, gripper_status, wrench], axis=1)
-        action = np.concatenate([motion_status, gripper_status], axis=1)
+        # motion_status = sample['action'].astype(np.float32)
+        # wrench = sample['wrench'].astype(np.float32)
+        # gripper_status = sample['gripper_status'].astype(np.float32)
+        image = np.moveaxis(sample['image'],-1,1)/255   # unsure what this does
+        # image = sample['image']
+        robot_act = sample['robot_act'].astype(np.float32)
+        robot_obs = sample['robot_obs'].astype(np.float32)
+    
         data = {
             'obs': {
                 'image': image, # T, 3, 96, 96
@@ -93,7 +95,7 @@ class VictorDataset(BaseImageDataset):
                 # 'gripper_status': gripper_status, # T, 3 # TODO ???
                 # 'wrench': wrench # T, 6
             },
-            'action': action # T, 7    # TODO should probably include the gripper status too ? and the gripper?
+            'action': robot_act # T, 7    # TODO should probably include the gripper status too ? and the gripper?
         }
         return data
     
@@ -111,6 +113,7 @@ def test():
     print(dataset.__getitem__(0))
     print(dataset.replay_buffer.episode_ends[:])
     print(dataset.replay_buffer.n_episodes)
+    dataset.get_normalizer()
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
     # nactions = normalizer['action'].normalize(dataset.replay_buffer['action'])
