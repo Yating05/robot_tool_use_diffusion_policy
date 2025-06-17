@@ -23,7 +23,7 @@ class VictorDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['wrench', 'action'])   # TODO include gripper data
+            zarr_path, keys=['wrench', 'action', 'gripper_status'])   # TODO include gripper data
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -76,19 +76,23 @@ class VictorDataset(BaseImageDataset):
     # TODO
     def _sample_to_data(self, sample):
         # agent_pos = sample['state'][:,:].astype(np.float32) # (agent_posx2, block_posex3)
-        action = sample['action'].astype(np.float32)
+        motion_status = sample['action'].astype(np.float32)
         wrench = sample['wrench'].astype(np.float32)
         gripper_status = sample['gripper_status'].astype(np.float32)
         image = np.moveaxis(sample['img'],-1,1)/255
 
+
+        obs = np.concatenate([motion_status, gripper_status, wrench])
+        action = np.concatenate([motion_status, gripper_status])
         data = {
             'obs': {
                 'image': image, # T, 3, 96, 96
-                'action': action, # T, 7
-                'gripper_status': gripper_status, # T, 3 # TODO ???
-                'wrench': wrench # T, 6
+                'obs'  : obs
+                # 'action': action, # T, 7
+                # 'gripper_status': gripper_status, # T, 3 # TODO ???
+                # 'wrench': wrench # T, 6
             },
-            'action': sample['action'].astype(np.float32) # T, 7    # TODO should probably include the gripper status too ? and the gripper?
+            'action': action # T, 7    # TODO should probably include the gripper status too ? and the gripper?
         }
         return data
     
@@ -103,6 +107,7 @@ def test():
     zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/ds_processed.zarr.zip')
     dataset = VictorDataset(zarr_path, horizon=16)
     print(dataset.replay_buffer.data)
+    print(dataset.__getitem__(0))
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
     # nactions = normalizer['action'].normalize(dataset.replay_buffer['action'])
