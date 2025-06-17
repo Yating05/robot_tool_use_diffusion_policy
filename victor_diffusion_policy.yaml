@@ -1,4 +1,4 @@
-_target_: diffusion_policy.workspace.train_diffusion_unet_hybrid_workspace.TrainDiffusionUnetHybridWorkspace
+_target_: diffusion_policy.workspace.train_diffusion_unet_hybrid_victor_workspace.TrainDiffusionUnetHybridWorkspace
 checkpoint:
   save_last_ckpt: true
   save_last_snapshot: false
@@ -28,7 +28,7 @@ logging:
   group: null
   id: null
   mode: online
-  name: 2023.01.16-20.20.06_train_diffusion_unet_hybrid_pusht_image
+  name: victor_diffusion
   project: diffusion_policy_debug
   resume: true
   tags:
@@ -36,8 +36,8 @@ logging:
   - pusht_image
   - default
 multi_run:
-  run_dir: data/outputs/2023.01.16/20.20.06_train_diffusion_unet_hybrid_pusht_image
-  wandb_name_base: 2023.01.16-20.20.06_train_diffusion_unet_hybrid_pusht_image
+  run_dir: victor_diffusion
+  wandb_name_base: victor_diffusion
 n_action_steps: 8
 n_latency_steps: 0
 n_obs_steps: 2
@@ -84,12 +84,12 @@ policy:
   shape_meta:
     action:
       shape:
-      - 7
+      - 10
       # TODO!
     obs: 
-      agent_pos:
+      robot_obs:
         shape:
-        - 2
+        - 16
         type: low_dim
       image:
         shape:
@@ -100,11 +100,11 @@ policy:
 shape_meta:
   action:
     shape:
-    - 2
+    - 10
   obs:
-    agent_pos:
+    robot_obs:
       shape:
-      - 2
+      - 16
       type: low_dim
     image:
       shape:
@@ -114,14 +114,14 @@ shape_meta:
       type: rgb
 task:
   dataset:
-    _target_: diffusion_policy.dataset.pusht_image_dataset.PushTImageDataset
+    _target_: diffusion_policy.dataset.victor_dataset.VictorDataset
     horizon: 16
-    max_train_episodes: 90
-    pad_after: 7
-    pad_before: 1
+    max_train_episodes: 1
+    pad_after: 0
+    pad_before: 0
     seed: 42
     val_ratio: 0.02
-    zarr_path: data/pusht/pusht_cchi_v7_replay.zarr
+    zarr_path: data/victor/victor_data.zarr
   env_runner:
     _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner
     fps: 10
@@ -141,15 +141,15 @@ task:
   - 3
   - 96
   - 96
-  name: pusht_image
+  name: victor_diff
   shape_meta:
     action:
       shape:
-      - 2
+      - 10
     obs:
-      agent_pos:
+      robot_obs:
         shape:
-        - 2
+        - 16
         type: low_dim
       image:
         shape:
@@ -157,7 +157,7 @@ task:
         - 96
         - 96
         type: rgb
-task_name: pusht_image
+task_name: victor_diff
 training:
   checkpoint_every: 50
   debug: false
@@ -174,7 +174,7 @@ training:
   seed: 42
   tqdm_interval_sec: 1.0
   use_ema: true
-  val_every: 1
+  val_every: 10
 val_dataloader:
   batch_size: 32
   num_workers: 8

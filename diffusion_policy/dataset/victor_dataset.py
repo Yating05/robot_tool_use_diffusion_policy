@@ -16,14 +16,14 @@ class VictorDataset(BaseImageDataset):
             horizon=1,
             pad_before=0,
             pad_after=0,
-            seed=42,
+            seed=0,
             val_ratio=0.0,
             max_train_episodes=None
             ):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['wrench', 'action', 'gripper_status'])   # TODO include gripper data
+            zarr_path, keys=['wrench', 'action', 'gripper_status', 'image'])   # TODO include gripper data
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -59,6 +59,7 @@ class VictorDataset(BaseImageDataset):
 
     # TODO ? 
     def get_normalizer(self, mode='limits', **kwargs):
+
         data = {
             'action': self.replay_buffer['action'],
             # NOTE for future reference: original grabs the first 2 columns, which correspond to agent_x, agent_y
@@ -79,15 +80,15 @@ class VictorDataset(BaseImageDataset):
         motion_status = sample['action'].astype(np.float32)
         wrench = sample['wrench'].astype(np.float32)
         gripper_status = sample['gripper_status'].astype(np.float32)
-        image = np.moveaxis(sample['img'],-1,1)/255
+        # image = np.moveaxis(sample['image'],-1,1)/255
+        image = sample['image']
 
-
-        obs = np.concatenate([motion_status, gripper_status, wrench])
-        action = np.concatenate([motion_status, gripper_status])
+        robot_obs = np.concatenate([motion_status, gripper_status, wrench], axis=1)
+        action = np.concatenate([motion_status, gripper_status], axis=1)
         data = {
             'obs': {
                 'image': image, # T, 3, 96, 96
-                'obs'  : obs
+                'robot_obs'  : robot_obs
                 # 'action': action, # T, 7
                 # 'gripper_status': gripper_status, # T, 3 # TODO ???
                 # 'wrench': wrench # T, 6
@@ -104,10 +105,12 @@ class VictorDataset(BaseImageDataset):
 
 
 def test():
-    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/ds_processed.zarr.zip')
+    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr')
     dataset = VictorDataset(zarr_path, horizon=16)
-    print(dataset.replay_buffer.data)
+    # print(dataset.replay_buffer.data)
     print(dataset.__getitem__(0))
+    print(dataset.replay_buffer.episode_ends[:])
+    print(dataset.replay_buffer.n_episodes)
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
     # nactions = normalizer['action'].normalize(dataset.replay_buffer['action'])
