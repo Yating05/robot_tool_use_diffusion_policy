@@ -23,7 +23,7 @@ class VictorDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            zarr_path, keys=['wrench', 'action'])
+            zarr_path, keys=['wrench', 'action'])   # TODO include gripper data
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -57,29 +57,38 @@ class VictorDataset(BaseImageDataset):
         val_set.train_mask = ~self.train_mask
         return val_set
 
+    # TODO ? 
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
-            'wrench': self.replay_buffer['wrench']#[...,:2]
+            # NOTE for future reference: original grabs the first 2 columns, which correspond to agent_x, agent_y
+            'wrench': self.replay_buffer['wrench'],#[...,:2]
+            'gripper_status': self.replay_buffer['gripper_status']
         }
         normalizer = LinearNormalizer()
-        normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)
-        # normalizer['image'] = get_image_range_normali/home/KirillT/robot_tool_2025S/datasets/d1.zarrzer()
+        normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)   # TODO unsure about keeping last_n_dims the same
+        normalizer['image'] = get_image_range_normalizer()  # TODO unsure?
         return normalizer
 
     def __len__(self) -> int:
         return len(self.sampler)
 
+    # TODO
     def _sample_to_data(self, sample):
-        agent_pos = sample['state'][:,:2].astype(np.float32) # (agent_posx2, block_posex3)
+        # agent_pos = sample['state'][:,:].astype(np.float32) # (agent_posx2, block_posex3)
+        action = sample['action'].astype(np.float32)
+        wrench = sample['wrench'].astype(np.float32)
+        gripper_status = sample['gripper_status'].astype(np.float32)
         image = np.moveaxis(sample['img'],-1,1)/255
 
         data = {
             'obs': {
                 'image': image, # T, 3, 96, 96
-                'agent_pos': agent_pos, # T, 2
+                'action': action, # T, 7
+                'gripper_status': gripper_status, # T, 3 # TODO ???
+                'wrench': wrench # T, 6
             },
-            'action': sample['action'].astype(np.float32) # T, 2
+            'action': sample['action'].astype(np.float32) # T, 7    # TODO should probably include the gripper status too ? and the gripper?
         }
         return data
     
@@ -91,8 +100,7 @@ class VictorDataset(BaseImageDataset):
 
 
 def test():
-    import os
-    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/d1.zarr')
+    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/ds_processed.zarr.zip')
     dataset = VictorDataset(zarr_path, horizon=16)
     print(dataset.replay_buffer.data)
     # from matplotlib import pyplot as plt
@@ -102,4 +110,5 @@ def test():
     # dists = np.linalg.norm(np.diff(nactions, axis=0), axis=-1)
 
 if __name__ == "__main__":
+    import os
     test()

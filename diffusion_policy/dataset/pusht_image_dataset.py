@@ -60,7 +60,8 @@ class PushTImageDataset(BaseImageDataset):
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['action'],
-            'agent_pos': self.replay_buffer['state'][...,:2]
+            # NOTE for future reference: it grabs the first 2 columns, which correspond to agent_x, agent_y
+            'agent_pos': self.replay_buffer['state'][...,:2]    
         }
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)
@@ -79,7 +80,7 @@ class PushTImageDataset(BaseImageDataset):
                 'image': image, # T, 3, 96, 96
                 'agent_pos': agent_pos, # T, 2
             },
-            'action': sample['action'].astype(np.float32) # T, 2
+            'action': sample['action'].astype(np.float32) # T, 7
         }
         return data
     
@@ -92,9 +93,11 @@ class PushTImageDataset(BaseImageDataset):
 
 def test():
     import os
+    import zarr
     zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/pusht/pusht_cchi_v7_replay.zarr')
+    print(zarr.open_group(zarr_path).tree())
     dataset = PushTImageDataset(zarr_path, horizon=16)
-    print(dataset.replay_buffer.data)
+    # print(dataset.replay_buffer.data)
     # from matplotlib import pyplot as plt
     # normalizer = dataset.get_normalizer()
     # nactions = normalizer['action'].normalize(dataset.replay_buffer['action'])
