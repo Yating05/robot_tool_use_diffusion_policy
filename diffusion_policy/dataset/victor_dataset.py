@@ -82,8 +82,8 @@ class VictorDataset(BaseImageDataset):
         # motion_status = sample['action'].astype(np.float32)
         # wrench = sample['wrench'].astype(np.float32)
         # gripper_status = sample['gripper_status'].astype(np.float32)
-        image = np.moveaxis(sample['image'],-1,1)/255   # unsure what this does
-        # image = sample['image']
+        image = np.moveaxis(sample['image'],-1,1)/255   # unsure what this does, but everything breaks without it
+        # image = sample['image'] / 255
         robot_act = sample['robot_act'].astype(np.float32)
         robot_obs = sample['robot_obs'].astype(np.float32)
     
