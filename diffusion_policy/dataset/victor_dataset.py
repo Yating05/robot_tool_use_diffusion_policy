@@ -23,6 +23,8 @@ class VictorDataset(BaseImageDataset):
         
         super().__init__()
         self.replay_buffer = ReplayBuffer.copy_from_path(
+            # TODO remember that the finger positions have 3 dims - [desired pos, pos, current]
+            # we will use the first 2 for obs and the 1st for act
             zarr_path, keys=["robot_act", "robot_obs", 'image'])   # TODO include gripper data
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
@@ -70,7 +72,7 @@ class VictorDataset(BaseImageDataset):
         normalizer = LinearNormalizer()
         normalizer.fit(data=data, last_n_dims=1, mode=mode, **kwargs)   # TODO unsure about keeping last_n_dims the same
         normalizer['image'] = get_image_range_normalizer()  # TODO unsure?
-        print(normalizer)
+        # print(normalizer)
         return normalizer
 
     def __len__(self) -> int:
@@ -107,7 +109,8 @@ class VictorDataset(BaseImageDataset):
 
 
 def test():
-    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr')
+    # zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr')
+    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr/ds_processed.zarr.zip')
     dataset = VictorDataset(zarr_path, horizon=16)
     # print(dataset.replay_buffer.data)
     print(dataset.__getitem__(0))

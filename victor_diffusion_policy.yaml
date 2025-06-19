@@ -8,9 +8,9 @@ checkpoint:
     mode: max
     monitor_key: train_action_mse_error # switched from mean error
 dataloader:
-  batch_size: 32
+  batch_size: 4
   num_workers: 8
-  persistent_workers: false
+  persistent_workers: true
   pin_memory: true
   shuffle: true
 dataset_obs_steps: 2
@@ -56,8 +56,10 @@ policy:
   _target_: diffusion_policy.policy.diffusion_unet_hybrid_image_policy.DiffusionUnetHybridImagePolicy
   cond_predict_scale: true
   crop_shape:
-  - 84
-  - 84
+  - 288
+  - 474
+  # - 84
+  # - 84
   diffusion_step_embed_dim: 128
   down_dims:
   - 512
@@ -84,33 +86,33 @@ policy:
   shape_meta:
     action:
       shape:
-      - 10
+      - 11
       # TODO!
     obs: 
       robot_obs:
         shape:
-        - 16
+        - 21
         type: low_dim
       image:
         shape:
         - 3
-        - 96
-        - 96
+        - 300
+        - 486
         type: rgb
 shape_meta:
   action:
     shape:
-    - 10
+    - 11
   obs:
     robot_obs:
       shape:
-      - 16
+      - 21
       type: low_dim
     image:
       shape:
       - 3
-      - 96
-      - 96
+      - 300
+      - 486
       type: rgb
 task:
   dataset:
@@ -121,7 +123,7 @@ task:
     pad_before: 0
     seed: 42
     val_ratio: 0.02
-    zarr_path: data/victor/victor_data.zarr
+    zarr_path: data/victor/victor_data.zarr/ds_processed.zarr.zip
   env_runner:
     _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner
     fps: 10
@@ -139,23 +141,23 @@ task:
     train_start_seed: 0
   image_shape:
   - 3
-  - 96
-  - 96
+  - 300
+  - 486
   name: victor_diff
   shape_meta:
     action:
       shape:
-      - 10
+      - 11
     obs:
       robot_obs:
         shape:
-        - 16
+        - 21
         type: low_dim
       image:
         shape:
         - 3
-        - 96
-        - 96
+        - 300
+        - 486
         type: rgb
 task_name: victor_diff
 training:
@@ -176,8 +178,8 @@ training:
   use_ema: true
   val_every: 10
 val_dataloader:
-  batch_size: 32
+  batch_size: 4
   num_workers: 8
-  persistent_workers: false
+  persistent_workers: true
   pin_memory: true
   shuffle: false
