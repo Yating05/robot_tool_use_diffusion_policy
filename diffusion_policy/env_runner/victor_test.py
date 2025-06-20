@@ -31,6 +31,11 @@ import wandb
 import json
 import zarr
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
+
+
+from diffusion_policy.common.victor_accumulator import ObsAccumulator
+
+
 if __name__ == "__main__":
     output_dir = "data/victor_eval_output"
     # if os.path.exists(output_dir):
@@ -57,26 +62,23 @@ if __name__ == "__main__":
     # policy.eval()
     zf = zarr.open("data/victor/victor_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
 
-    # print(zf["data/image"][:10].shape)
-    a = (np.moveaxis(np.array(zf["data/image"][:1]),-1,1)/255)[:, np.newaxis, :, :, :]
-    # print(a.shape)
-    # print(np.concatenate([a, a], axis=1).shape)
+    vic_acc = ObsAccumulator(2)
+    vic_acc.put({
+        "image" : np.moveaxis(np.array(zf["data/image"][0]),-1,0) / 255,
+        "robot_obs" : np.array(zf["data/robot_obs"][0])
+    })
 
-    # print(zf["data/robot_obs"][:10].shape)
-    b = np.array(zf["data/robot_obs"][:1])[:, np.newaxis, :]
-    obs = {
-        "image" : np.concatenate([a, a], axis=1),
-        # "image" : zf["data/image"][:20],
-        "robot_obs" : np.concatenate([b, b], axis=1)
-    }
-
-
-
-    np_obs_dict = dict(obs)
-
+    # print(vic_acc.get())
+    np_obs_dict = dict(vic_acc.get())
+    # print(np_obs_dict)
+    # np_obs_dict = dict(obs) 
+    for k, v in np_obs_dict.items():
+        print(k, v.shape)
     # print(np_obs_dict["image"].shape)
+
+
      # device transfer
-    obs_dict = dict_apply(np_obs_dict, 
+    obs_dict = dict_apply(np_obs_dict,  # type: ignore
         lambda x: torch.from_numpy(x).to(
             device=device))
 
@@ -90,4 +92,5 @@ if __name__ == "__main__":
 
     action = np_action_dict['action']
     print(action.shape)
-    print(action)
+    print("pred action:", action[0][0])
+    print("true action:", zf["data/robot_act"][0])

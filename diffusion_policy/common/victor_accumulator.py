@@ -28,7 +28,7 @@ class ObsAccumulator:
                 obs_dict[k].append(v)
         
         for k, vlist in obs_dict.items():
-            obs_dict[k] = np.expand_dims(np.vstack(obs_dict[k]), axis=0)
+            obs_dict[k] = np.expand_dims(np.stack(obs_dict[k]), axis=0)
 
         return obs_dict
 
@@ -38,9 +38,9 @@ class ObsAccumulator:
 if __name__ == "__main__":
     print("deck")
     oa = ObsAccumulator(2)
-    oa.put({"a" : np.array([1,2,3]), "b" : np.array([5,6,7,12])})
-    oa.put({"a" : np.array([1,5,1]), "b" : np.array([5,7,7,13])})
-    oa.put({"a" : np.array([9,2,3]), "b" : np.array([5,9,9,14])})
+    oa.put({"a" : np.array([1,2,3]), "b" : np.array([[5,6,7,12], [1,1,1,1]])})
+    oa.put({"a" : np.array([1,5,1]), "b" : np.array([[5,6,7,13], [2,2,2,2]])})
+    oa.put({"a" : np.array([9,2,3]), "b" : np.array([[5,6,7,14], [3,3,3,3]])})
     print(oa)
     for k, v in oa.get().items():
         print("key", k, ":\n", v, "\tshape:", v.shape)
