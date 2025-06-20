@@ -37,6 +37,8 @@ from diffusion_policy.common.victor_accumulator import ObsAccumulator
 
 
 if __name__ == "__main__":
+    np.printoptions(precision=5)
+
     output_dir = "data/victor_eval_output"
     # if os.path.exists(output_dir):
     #     click.confirm(f"Output path {output_dir} already exists! Overwrite?", abort=True)
@@ -63,34 +65,39 @@ if __name__ == "__main__":
     zf = zarr.open("data/victor/victor_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
 
     vic_acc = ObsAccumulator(2)
-    vic_acc.put({
-        "image" : np.moveaxis(np.array(zf["data/image"][0]),-1,0) / 255,
-        "robot_obs" : np.array(zf["data/robot_obs"][0])
-    })
 
-    # print(vic_acc.get())
-    np_obs_dict = dict(vic_acc.get())
-    # print(np_obs_dict)
-    # np_obs_dict = dict(obs) 
-    for k, v in np_obs_dict.items():
-        print(k, v.shape)
-    # print(np_obs_dict["image"].shape)
+    for i in range(680):
+        print('iter:', i)
+        vic_acc.put({
+            "image" : np.moveaxis(np.array(zf["data/image"][i]),-1,0),  # swap axis to make it fit the dataset shape
+            "robot_obs" : np.array(zf["data/robot_obs"][i])
+        })
+
+        # print(vic_acc.get())
+        np_obs_dict = dict(vic_acc.get())
+        # print(np_obs_dict)
+        # np_obs_dict = dict(obs) 
+        # for k, v in np_obs_dict.items():
+        #     print(k, v.shape)
+        # print(np_obs_dict["image"].shape)
 
 
-     # device transfer
-    obs_dict = dict_apply(np_obs_dict,  # type: ignore
-        lambda x: torch.from_numpy(x).to(
-            device=device))
+        # device transfer
+        obs_dict = dict_apply(np_obs_dict,  # type: ignore
+            lambda x: torch.from_numpy(x).to(
+                device=device))
 
-    # run policy
-    with torch.no_grad():
-        action_dict = policy.predict_action(obs_dict)
+        # run policy
+        with torch.no_grad():
+            action_dict = policy.predict_action(obs_dict)
 
-    # device_transfer
-    np_action_dict = dict_apply(action_dict,
-        lambda x: x.detach().to('cpu').numpy())
+        # device_transfer
+        np_action_dict = dict_apply(action_dict,
+            lambda x: x.detach().to('cpu').numpy())
 
-    action = np_action_dict['action']
-    print(action.shape)
-    print("pred action:", action[0][0])
-    print("true action:", zf["data/robot_act"][0])
+        action = np_action_dict['action']
+        # print(action.shape)
+        print("pred action:", action[0][0])
+        print("true action:", zf["data/robot_act"][i])
+        print("delta:", action[0][0] - zf["data/robot_act"][i])
+        print("squared delta sum:", np.sum((action[0][0] - zf["data/robot_act"][i]) ** 2))
