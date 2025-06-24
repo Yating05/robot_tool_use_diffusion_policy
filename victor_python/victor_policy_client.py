@@ -20,7 +20,7 @@ import numpy as np
 import torch
 
 from std_msgs.msg import String
-from geometry_msgs.msg import TransformStamped, WrenchStamped
+from geometry_msgs.msg import TransformStamped, WrenchStamped, Wrench
 from victor_hardware_interfaces.msg import (
     MotionStatus, 
     Robotiq3FingerCommand, 
@@ -123,12 +123,12 @@ class VictorArmPolicyClient:
             self.high_freq_qos
         )
 
-        # self.wrench_sub = self.node.create_subscription(
-        #     WrenchStamped,
-        #     f'/victor/{self.side}_arm/wrench',
-        #     self.wrench_callback,
-        #     self.high_freq_qos
-        # )
+        self.wrench_sub = self.node.create_subscription(
+            WrenchStamped,
+            f'/victor/{self.side}_arm/wrench',
+            self.wrench_callback,
+            self.high_freq_qos
+        )
     
     def controller_state_callback(self, msg: String):
         """Handle controller state updates - only store data."""
@@ -147,6 +147,11 @@ class VictorArmPolicyClient:
         with self.status_lock:
             self.latest_gripper_status = msg
     
+    def wrench_callback(self, msg: WrenchStamped):
+        """Handle wrench updates - only store data."""
+        with self.status_lock:
+            self.latest_wrench = msg
+
     def _convert_to_list(self, data: Union[List[float], np.ndarray, torch.Tensor], 
                         expected_dim: int, data_name: str) -> List[float]:
         """Convert input data to list with dimension validation."""
@@ -308,6 +313,14 @@ class VictorArmPolicyClient:
         ext_torques = [jvq.joint_1, jvq.joint_2, jvq.joint_3, jvq.joint_4,
                       jvq.joint_5, jvq.joint_6, jvq.joint_7]
         return torch.tensor(ext_torques, dtype=torch.float32, device=self.device)
+    
+    def get_wrench(self) -> Optional[WrenchStamped]:
+        """Get the latest wrench for this arm."""
+        with self.status_lock:
+            # w = self.latest_wrench.wrench
+            # wrench = [w.force.x, w.force.y, w.force.z, w.torque.x, w.torque.y, w.torque.z]
+            # return torch.tensor(wrench, dtype=torch.float32, device=self.device)
+            return self.latest_wrench
 
 class VictorPolicyClient(Node):
     """

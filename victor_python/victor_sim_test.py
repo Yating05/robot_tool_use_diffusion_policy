@@ -15,7 +15,7 @@ import numpy as np
 import torch
 import pathlib
 from std_msgs.msg import String
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, WrenchStamped
 from victor_hardware_interfaces.msg import (
     MotionStatus, 
     Robotiq3FingerCommand, 
@@ -23,6 +23,9 @@ from victor_hardware_interfaces.msg import (
     JointValueQuantity,
     Robotiq3FingerActuatorCommand
 )
+
+from victor_python.victor_utils import wrench_to_tensor, gripper_status_to_tensor
+
 from diffusion_policy.common.victor_accumulator import ObsAccumulator
 import zarr
 from victor_python.victor_policy_client import VictorPolicyClient
@@ -122,11 +125,22 @@ class VictorSimClient:
         for i in range(696):  
             print('iter:', i)
             left_pos = self.client.left.get_joint_positions() # type: ignore
+            # print(left_pos)
+            left_wrench = self.client.left.get_wrench() # type: ignore
+            wrench = wrench_to_tensor(left_wrench, self.client.device) # type: ignore
+            # print(wrench)
+            left_gripper = self.client.left.get_gripper_status() # type: ignore
+            gripper_obs = gripper_status_to_tensor(left_gripper, self.client.device) # type: ignore
+            # print(gripper_obs)
+            sim_obs = np.hstack([left_pos, gripper_obs, wrench])
+            print("SIM OBS:\n", sim_obs)
             if left_pos is not None:
                 self.accumulator.put({
                     "image" : np.moveaxis(np.array(self.zf["data/image"][i]),-1,0),  # swap axis to make it fit the dataset shape
-                    "robot_obs" : np.array(self.zf["data/robot_obs"][i])
+                    # "robot_obs" : np.array(self.zf["data/robot_obs"][i])
+                    "robot_obs" : sim_obs
                 })
+                print("ROBOT_OBS:\n", np.array(self.zf["data/robot_obs"][i]))
 
                 np_obs_dict = dict(self.accumulator.get())
 
