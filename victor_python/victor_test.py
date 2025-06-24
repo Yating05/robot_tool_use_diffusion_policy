@@ -1,3 +1,4 @@
+import time
 import wandb
 import numpy as np
 import torch
@@ -7,7 +8,6 @@ import tqdm
 import dill
 import math
 import wandb.sdk.data_types.video as wv
-from diffusion_policy.env.pusht.pusht_image_env import PushTImageEnv
 from diffusion_policy.gym_util.async_vector_env import AsyncVectorEnv
 # from diffusion_policy.gym_util.sync_vector_env import SyncVectorEnv
 from diffusion_policy.gym_util.multistep_wrapper import MultiStepWrapper
@@ -37,7 +37,7 @@ from diffusion_policy.common.victor_accumulator import ObsAccumulator
 
 
 if __name__ == "__main__":
-    np.printoptions(precision=5)
+    np.set_printoptions(precision=5, suppress=True)
 
     output_dir = "data/victor_eval_output"
     # if os.path.exists(output_dir):
@@ -46,27 +46,42 @@ if __name__ == "__main__":
     
 
     # load checkpoint
-    payload = torch.load(open("data/outputs/2025.06.19/12.52.40_train_diffusion_unet_hybrid_victor_diff/checkpoints/epoch=0250-train_action_mse_error=0.000.ckpt", 'rb'), pickle_module=dill)
+    # payload = torch.load(open("data/outputs/2025.06.19/12.52.40_train_diffusion_unet_hybrid_victor_diff/checkpoints/epoch=0250-train_action_mse_error=0.000.ckpt", 'rb'), pickle_module=dill)
+    # payload = torch.load(open("data/outputs/2025.06.23/15.33.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    payload = torch.load(open("data/outputs/2025.06.24/12.24.58_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    # payload = torch.load(open("data/outputs/2025.06.24/12.51.10_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    # DDIM
+    # large
+    # payload = torch.load(open("data/outputs/2025.06.24/13.31.55_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    # lower down_dims
+    # payload = torch.load(open("data/outputs/2025.06.24/13.58.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    # lower down_dims and lower action horizon
+    # payload = torch.load(open("data/outputs/2025.06.24/14.12.24_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+    # lower down_dims and lower action horizon (since we only use 2 atm) and sample prediction type
+    payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
     cfg = payload['cfg']
+    cfg.policy.num_inference_steps = 16
     cls = hydra.utils.get_class(cfg._target_)
     workspace = cls(cfg, output_dir=output_dir)
     workspace: BaseWorkspace
     workspace.load_payload(payload, exclude_keys=None, include_keys=None)
     
     # get policy from workspace
-    policy = workspace.model
+    policy = workspace.model # type: ignore
     if cfg.training.use_ema:
-        policy = workspace.ema_model
+        policy = workspace.ema_model # type: ignore
     device = policy.device
 
     device = torch.device(device)
     policy.to(device)
     # policy.eval()
-    zf = zarr.open("data/victor/victor_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    # zf = zarr.open("data/victor/victor_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    # zf = zarr.open("data/victor/victor_state_data.zarr", mode='r') 
+    zf = zarr.open("data/victor/victor_state_data_0624.zarr", mode='r') 
 
     vic_acc = ObsAccumulator(2)
 
-    for i in range(680):
+    for i in range(696):
         print('iter:', i)
         vic_acc.put({
             "image" : np.moveaxis(np.array(zf["data/image"][i]),-1,0),  # swap axis to make it fit the dataset shape
@@ -87,17 +102,21 @@ if __name__ == "__main__":
             lambda x: torch.from_numpy(x).to(
                 device=device))
 
+        t1 = time.time()
         # run policy
         with torch.no_grad():
             action_dict = policy.predict_action(obs_dict)
+        t2 = time.time()
+        print("inference time:", t2 - t1, "seconds")
 
         # device_transfer
         np_action_dict = dict_apply(action_dict,
             lambda x: x.detach().to('cpu').numpy())
 
         action = np_action_dict['action']
-        # print(action.shape)
+        print(action.shape)
         print("pred action:", action[0][0])
         print("true action:", zf["data/robot_act"][i])
         print("delta:", action[0][0] - zf["data/robot_act"][i])
-        print("squared delta sum:", np.sum((action[0][0] - zf["data/robot_act"][i]) ** 2))
+        print("percentage off:", np.abs((action[0][0] - zf["data/robot_act"][i])) / zf["data/robot_act"][i])
+        print("absolute delta sum:", np.sum(np.abs((action[0][0] - zf["data/robot_act"][i]))))

@@ -6,7 +6,7 @@ import numpy as np
 if __name__ == "__main__":
     np.set_printoptions(suppress=True, precision=5)
     # dirf = zarr.open("baselines/diffusion_policy/pusht_cchi_v7_replay.zarr.zip", mode='r')
-    dirf = zarr.open("data/victor/d1.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    dirf = zarr.open("data/victor/victor_state_data_0624.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
     # dirf = zarr.open("data/pusht/pusht_cchi_v7_replay.zarr", mode='r') #
     print(dirf.tree())
     print(list(dirf.keys()))
