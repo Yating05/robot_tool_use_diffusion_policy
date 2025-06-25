@@ -26,7 +26,8 @@ from victor_hardware_interfaces.msg import (
     Robotiq3FingerCommand, 
     Robotiq3FingerStatus,
     JointValueQuantity,
-    Robotiq3FingerActuatorCommand
+    Robotiq3FingerActuatorCommand,
+    Robotiq3FingerActuatorStatus
 )
 
 

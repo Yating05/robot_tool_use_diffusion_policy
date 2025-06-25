@@ -66,9 +66,9 @@ class VictorSimClient:
         # lower down_dims
         # payload = torch.load(open("data/outputs/2025.06.24/13.58.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
         # lower down_dims and lower action horizon (since we only use 2 atm) and sample prediction type
-        # payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-        # high down_dims and sample prediction
-        payload = torch.load(open("data/outputs/2025.06.25/12.27.36_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+        payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+        # high down_dims and sample prediction BAD
+        # payload = torch.load(open("data/outputs/2025.06.25/12.27.36_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
         
         cfg = payload['cfg']
         cfg.policy.num_inference_steps = 20
