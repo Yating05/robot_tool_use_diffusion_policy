@@ -4,6 +4,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+
 from threading import Lock
 import json
 import time
@@ -14,6 +15,7 @@ from typing import Dict, Any, Callable, Optional, Union, List
 import numpy as np
 import torch
 import pathlib
+from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped, WrenchStamped
 from victor_hardware_interfaces.msg import (
@@ -23,6 +25,8 @@ from victor_hardware_interfaces.msg import (
     JointValueQuantity,
     Robotiq3FingerActuatorCommand
 )
+
+import ros2_numpy as rnp
 
 from victor_python.victor_utils import wrench_to_tensor, gripper_status_to_tensor
 
@@ -37,7 +41,10 @@ from diffusion_policy.workspace.base_workspace import BaseWorkspace
 class VictorSimClient:
     def __init__(self, device: Union[str, torch.device] = 'cpu'):
         # Initialize client with both arms enabled and specified device
-        self.client = VictorPolicyClient('policy_example', enable_left=True, enable_right=False, device=device)
+        self.side = 'left'
+        self.client = VictorPolicyClient('policy_example', enable_left = self.side == 'left',
+                                            enable_right = self.side == 'right', device=device)
+        # self.arm_node = self.client.left.node if self.side == 'left' else self.client.right.node # type: ignore
         self.get_logger = self.client.get_logger
         # self.device = torch.device(device)    # use model device
         self.accumulator = ObsAccumulator(2)
@@ -59,8 +66,10 @@ class VictorSimClient:
         # lower down_dims
         # payload = torch.load(open("data/outputs/2025.06.24/13.58.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
         # lower down_dims and lower action horizon (since we only use 2 atm) and sample prediction type
-        payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    
+        # payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+        # high down_dims and sample prediction
+        payload = torch.load(open("data/outputs/2025.06.25/12.27.36_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
+        
         cfg = payload['cfg']
         cfg.policy.num_inference_steps = 20
         cls = hydra.utils.get_class(cfg._target_)
@@ -81,7 +90,19 @@ class VictorSimClient:
         # self.zf = zarr.open("data/victor/victor_state_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
         self.zf = zarr.open("data/victor/victor_state_data_0624.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
 
+    # sets up subscribers that are needed for the model specifically
+    def _setup_subscribers(self):
+        self.img_sub = self.client.create_subscription(
+            Image,
+            '/fake_image',
+            self.image_callback,
+            self.client.reliable_qos
+        )
     
+    def image_callback(self, msg: Image):
+        self.latest_img = rnp.numpify(msg)
+        return 
+
     def wait_for_server(self, timeout: float = 10.0) -> bool:
         """Wait for server to be available and sending status."""
         self.get_logger().info("Checking for server availability...")

@@ -61,6 +61,7 @@ class VictorArmPolicyClient:
         self.latest_motion_status = None
         self.latest_gripper_status = None
         self.latest_controller_state = None
+        self.latest_wrench = None
         self.status_lock = Lock()
         
         # Controller status tracking - simplified, no events

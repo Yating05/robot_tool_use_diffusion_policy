@@ -31,7 +31,7 @@ import wandb
 import json
 import zarr
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
-
+import matplotlib.pyplot as plt
 
 from diffusion_policy.common.victor_accumulator import ObsAccumulator
 
