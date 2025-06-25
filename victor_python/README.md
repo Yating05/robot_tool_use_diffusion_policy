@@ -11,6 +11,8 @@ NOTE: in our model we only use **robot_act**, **robot_obs** and **image**:
 - **image** - 300x486 image for the image configuration (resolution can be changed in the config)
 - **robot_act** - [7 joint angles, position_request * finger{a,b,c} and scissor_status]
 
+![alt text](image-1.png)
+
 ### meta
 **meta** group contains the episode_ends array which stores what index each demonstration/episode/trajectory ended on (so in the above example it stores [696])
 

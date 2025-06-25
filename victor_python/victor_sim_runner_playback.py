@@ -21,7 +21,8 @@ from victor_hardware_interfaces.msg import (
     Robotiq3FingerCommand, 
     Robotiq3FingerStatus,
     JointValueQuantity,
-    Robotiq3FingerActuatorCommand
+    Robotiq3FingerActuatorCommand,
+    Robotiq3FingerActuatorStatus
 )
 from diffusion_policy.common.victor_accumulator import ObsAccumulator
 import zarr
