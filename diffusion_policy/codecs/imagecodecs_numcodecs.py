@@ -41,7 +41,7 @@ from numcodecs.abc import Codec
 from numcodecs.registry import register_codec, get_codec
 
 import imagecodecs
-
+# from imagecodecs.imagecodecs import jpeg2k_encode
 
 def protective_squeeze(x: numpy.ndarray):
     """
@@ -648,7 +648,7 @@ class Jpeg2k(Codec):
         bitspersample=None,
         resolutions=None,
         numthreads=None,
-        verbose=0,
+        verbose=1,
     ):
         self.level = level
         self.codecformat = codecformat
