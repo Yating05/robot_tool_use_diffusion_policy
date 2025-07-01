@@ -166,6 +166,7 @@ class ReplayBuffer:
                     meta[key] = value[:]
 
             if keys is None:
+        
                 keys = src_root['data'].keys()
             data = dict()
             for key in keys:

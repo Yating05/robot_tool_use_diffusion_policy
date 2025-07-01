@@ -2,6 +2,7 @@ from typing import Dict
 import torch
 import numpy as np
 import copy
+import zarr
 from diffusion_policy.common.pytorch_util import dict_apply
 from diffusion_policy.common.replay_buffer import ReplayBuffer
 from diffusion_policy.common.sampler import (
@@ -9,6 +10,9 @@ from diffusion_policy.common.sampler import (
 from diffusion_policy.model.common.normalizer import LinearNormalizer
 from diffusion_policy.dataset.base_dataset import BaseImageDataset
 from diffusion_policy.common.normalize_util import get_image_range_normalizer
+from diffusion_policy.codecs.imagecodecs_numcodecs import Jpeg2k, register_codecs, Blosc2, Jpeg
+
+register_codecs()
 
 class VictorDataset(BaseImageDataset):
     def __init__(self,
@@ -22,10 +26,27 @@ class VictorDataset(BaseImageDataset):
             ):
         
         super().__init__()
+        self.store = zarr.MemoryStore()
+
+        compressor_map = {
+            "robot_act" : Blosc2(),
+            "robot_obs" : Blosc2(),
+            "image"     : Jpeg2k(level=50)
+        }
+
+        chunk_map = {
+            "robot_act" : (1000, 11),
+            "robot_obs" : (1000, 21),
+            "image"     : (1, 300, 486, 3)
+        }
+
         self.replay_buffer = ReplayBuffer.copy_from_path(
-            # TODO remember that the finger positions have 3 dims - [desired pos, pos, current]
-            # we will use the first 2 for obs and the 1st for act
-            zarr_path, keys=["robot_act", "robot_obs", 'image'])   # TODO include gripper data
+            zarr_path, keys=["robot_act", "robot_obs", 'image'],
+            chunks=chunk_map,
+            store=self.store,
+            compressors=compressor_map)
+
+
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
@@ -47,20 +68,18 @@ class VictorDataset(BaseImageDataset):
         self.pad_before = pad_before
         self.pad_after = pad_after
 
-    def get_validation_dataset(self):
-        val_set = copy.copy(self)
-        val_set.sampler = SequenceSampler(
-            replay_buffer=self.replay_buffer, 
-            sequence_length=self.horizon,
-            pad_before=self.pad_before, 
-            pad_after=self.pad_after,
-            episode_mask=~self.train_mask
-            )
-        val_set.train_mask = ~self.train_mask
-        return val_set
+    # def get_validation_dataset(self):
+    #     val_set = copy.copy(self)
+    #     val_set.sampler = SequenceSampler(
+    #         replay_buffer=self.replay_buffer, 
+    #         sequence_length=self.horizon,
+    #         pad_before=self.pad_before, 
+    #         pad_after=self.pad_after,
+    #         episode_mask=~self.train_mask
+    #         )
+    #     val_set.train_mask = ~self.train_mask
+    #     return val_set
 
-    # TODO ? 
-    # TODO -> feels WRONG to normalize all data dimensions in the same way (even when they exist on different bounds)
     def get_normalizer(self, mode='limits', **kwargs):
         data = {
             'action': self.replay_buffer['robot_act'],
@@ -78,7 +97,6 @@ class VictorDataset(BaseImageDataset):
     def __len__(self) -> int:
         return len(self.sampler)
 
-    # TODO
     def _sample_to_data(self, sample):
         # agent_pos = sample['state'][:,:].astype(np.float32) # (agent_posx2, block_posex3)
         # motion_status = sample['action'].astype(np.float32)
@@ -110,7 +128,8 @@ class VictorDataset(BaseImageDataset):
 
 def test():
     # zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr')
-    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr/ds_processed.zarr.zip')
+    zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_img_data.zarr/ds_processed.zarr.zip')
+    # zarr_path = os.path.expanduser('~/robot_tool_use_diffusion_policy/data/victor/victor_data.zarr/ds_processed.zarr.zip')
     dataset = VictorDataset(zarr_path, horizon=16)
     # print(dataset.replay_buffer.data)
     print(dataset.__getitem__(0))
