@@ -4,11 +4,11 @@ checkpoint:
   save_last_snapshot: false
   topk:
     format_str: epoch={epoch:04d}-train_action_mse_error={train_action_mse_error:.3f}.ckpt
-    k: 10
-    mode: max
+    k: 2
+    mode: min
     monitor_key: train_action_mse_error # switched from mean error
 dataloader:
-  batch_size: 16
+  batch_size: 4
   num_workers: 8
   persistent_workers: true
   pin_memory: true
@@ -137,22 +137,22 @@ task:
     pad_before: 0
     seed: 42
     val_ratio: 0.02
-    zarr_path: data/victor/victor_state_data_0624.zarr
-  env_runner:
-    _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner   # never actually gets used
-    fps: 10
-    legacy_test: true
-    max_steps: 300
-    n_action_steps: 8
-    n_envs: null
-    n_obs_steps: 2
-    n_test: 50
-    n_test_vis: 4
-    n_train: 6
-    n_train_vis: 2
-    past_action: false
-    test_start_seed: 100000
-    train_start_seed: 0
+    zarr_path: data/victor/output_data_1.zarr
+  # env_runner:
+  #   _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner   # never actually gets used
+  #   fps: 10
+  #   legacy_test: true
+  #   max_steps: 300
+  #   n_action_steps: 8
+  #   n_envs: null
+  #   n_obs_steps: 2
+  #   n_test: 50
+  #   n_test_vis: 4
+  #   n_train: 6
+  #   n_train_vis: 2
+  #   past_action: false
+  #   test_start_seed: 100000
+  #   train_start_seed: 0
   # image_shape:
   # - 3
   # - 2

@@ -28,23 +28,25 @@ class VictorDataset(BaseImageDataset):
         super().__init__()
         self.store = zarr.MemoryStore()
 
-        compressor_map = {
-            "robot_act" : Blosc2(),
-            "robot_obs" : Blosc2(),
-            "image"     : Jpeg2k(level=50)
-        }
+        # compressor_map = {
+        #     "robot_act" : Blosc2(),
+        #     "robot_obs" : Blosc2(),
+        #     "image"     : Jpeg2k(level=50)
+        # }
 
         chunk_map = {
-            "robot_act" : (1000, 11),
-            "robot_obs" : (1000, 21),
-            "image"     : (1, 300, 486, 3)
+            "robot_act" : (100, 11),
+            "robot_obs" : (100, 21),
+            "image"     : (10, 512, 512, 4)
         }
 
         self.replay_buffer = ReplayBuffer.copy_from_path(
             zarr_path, keys=["robot_act", "robot_obs", 'image'],
             chunks=chunk_map,
-            store=self.store,
-            compressors=compressor_map)
+            store=self.store,)
+            # compressors=compressor_map)
+        
+        print(f"Loaded replay buffer with {self.replay_buffer}")
 
 
         val_mask = get_val_mask(

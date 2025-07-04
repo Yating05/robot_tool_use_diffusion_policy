@@ -108,9 +108,9 @@ policy:
         type: low_dim
       image:
         shape:
-        - 3
-        - 300
-        - 486
+        - 4
+        - 512 
+        - 512
         type: rgb
 shape_meta:
   action:
@@ -123,9 +123,9 @@ shape_meta:
       type: low_dim
     image:
       shape:
-      - 3
-      - 300
-      - 486
+      - 4
+      - 512
+      - 512
       type: rgb
 task:
   dataset:
@@ -153,9 +153,9 @@ task:
     test_start_seed: 100000
     train_start_seed: 0
   image_shape:
-  - 3
-  - 300
-  - 486
+  - 4
+  - 512
+  - 512
   name: victor_diff
   shape_meta:
     action:
@@ -168,9 +168,9 @@ task:
         type: low_dim
       image:
         shape:
-        - 3
-        - 300
-        - 486
+        - 4
+        - 512
+        - 512
         type: rgb
 task_name: victor_diff
 training:

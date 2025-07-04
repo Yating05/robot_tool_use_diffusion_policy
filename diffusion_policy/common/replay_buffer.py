@@ -187,6 +187,7 @@ class ReplayBuffer:
                 keys = src_root['data'].keys()
             for key in keys:
                 value = src_root['data'][key]
+                print(f'chuncks: {value.chunks}, compressor: {value.compressor}')
                 cks = cls._resolve_array_chunks(
                     chunks=chunks, key=key, array=value)
                 cpr = cls._resolve_array_compressor(
@@ -221,7 +222,10 @@ class ReplayBuffer:
         if backend == 'numpy':
             print('backend argument is deprecated!')
             store = None
-        group = zarr.open(os.path.expanduser(zarr_path), 'r')
+        # group = zarr.open(os.path.expanduser(zarr_path), 'r')
+        expanded_path = os.path.expanduser(zarr_path)
+        print(f"Opening zarr from path: {expanded_path}")
+        group = zarr.open(zarr_path, 'r')
         return cls.copy_from_store(src_store=group.store, store=store, 
             keys=keys, chunks=chunks, compressors=compressors, 
             if_exists=if_exists, **kwargs)

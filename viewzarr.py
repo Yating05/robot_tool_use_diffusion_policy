@@ -6,7 +6,9 @@ import numpy as np
 if __name__ == "__main__":
     np.set_printoptions(suppress=True, precision=5)
     # dirf = zarr.open("baselines/diffusion_policy/pusht_cchi_v7_replay.zarr.zip", mode='r')
-    dirf = zarr.open("data/victor/victor_state_data_0624.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    # dirf = zarr.open("./data/victor/output_data_1.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    # Updated to use a working zarr file - output_data_1.zarr has compatibility issues with zarr v3 format
+    dirf = zarr.open("./data/victor/output_data_1.zarr", mode='r')  # This file works
     # dirf = zarr.open("data/pusht/pusht_cchi_v7_replay.zarr", mode='r') #
     print(dirf.tree())
     print(list(dirf.keys()))
