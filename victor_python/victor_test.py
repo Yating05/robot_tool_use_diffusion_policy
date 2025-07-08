@@ -8,6 +8,9 @@ import tqdm
 import dill
 import math
 import wandb.sdk.data_types.video as wv
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from diffusion_policy.gym_util.async_vector_env import AsyncVectorEnv
 # from diffusion_policy.gym_util.sync_vector_env import SyncVectorEnv
 from diffusion_policy.gym_util.multistep_wrapper import MultiStepWrapper
@@ -43,26 +46,14 @@ if __name__ == "__main__":
     # if os.path.exists(output_dir):
     #     click.confirm(f"Output path {output_dir} already exists! Overwrite?", abort=True)
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
-    
 
-    # load checkpoint
-    # payload = torch.load(open("data/outputs/2025.06.19/12.52.40_train_diffusion_unet_hybrid_victor_diff/checkpoints/epoch=0250-train_action_mse_error=0.000.ckpt", 'rb'), pickle_module=dill)
-    # payload = torch.load(open("data/outputs/2025.06.23/15.33.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # payload = torch.load(open("data/outputs/2025.06.24/12.24.58_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # payload = torch.load(open("data/outputs/2025.06.24/12.51.10_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # DDIM
-    # large
-    # payload = torch.load(open("data/outputs/2025.06.24/13.31.55_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # lower down_dims
-    # payload = torch.load(open("data/outputs/2025.06.24/13.58.39_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # lower down_dims and lower action horizon
-    # payload = torch.load(open("data/outputs/2025.06.24/14.12.24_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # lower down_dims and lower action horizon (since we only use 2 atm) and sample prediction type
-    payload = torch.load(open("data/outputs/2025.06.24/14.21.53_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)
-    # high down_dims and sample prediction BAD
-    # payload = torch.load(open("data/outputs/2025.06.25/12.27.36_train_diffusion_unet_hybrid_victor_diff/checkpoints/latest.ckpt", 'rb'), pickle_module=dill)    
+    # checkpoint_path = "./outputs/2025-07-07/14-36-26/checkpoints/latest.ckpt"
+    checkpoint_path = "./outputs/2025-07-07/16-22-50/checkpoints/latest.ckpt"
+
+    output_dir = "./outputs/2025-07-07/16-22-50/"
+    payload = torch.load(open(checkpoint_path, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
-    cfg.policy.num_inference_steps = 16
+    # cfg.policy.num_inference_steps = 16
     cls = hydra.utils.get_class(cfg._target_)
     workspace = cls(cfg, output_dir=output_dir)
     workspace: BaseWorkspace
@@ -77,9 +68,8 @@ if __name__ == "__main__":
     device = torch.device(device)
     policy.to(device)
     # policy.eval()
-    # zf = zarr.open("data/victor/victor_data.zarr", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
-    # zf = zarr.open("data/victor/victor_state_data.zarr", mode='r') 
-    zf = zarr.open("data/victor/victor_state_data_0624.zarr", mode='r') 
+    zf = zarr.open("./data/victor/dataset_2025-07-07_16-05-35.zarr", mode='r') 
+
 
     vic_acc = ObsAccumulator(2)
 

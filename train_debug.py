@@ -30,8 +30,7 @@ def main(cfg: OmegaConf):
     cfg.training.device = "cuda:0"
     
     # Update dataset path to use the actual file (absolute path)
-    cfg.task.dataset.zarr_path = "/home/yatin/Documents/Projects/forceful_tool_use/diffusion_related" \
-    "/robot_tool_use_diffusion_policy/data/victor/output_data_1.zarr"
+    cfg.task.dataset.zarr_path = "/home/yatin/Documents/Wolverine/Research/force_tool_acoustic/diffusion_related/robot_tool_use_diffusion_policy/data/victor/dataset_2025-07-07_16-05-35.zarr.zip"
 
     # cfg.task.dataset.zarr_path = "/data/victor/traj_1.zarr"
      # resolve immediately so all the ${now:} resolvers

@@ -5,10 +5,10 @@ checkpoint:
   topk:
     format_str: epoch={epoch:04d}-train_action_mse_error={train_action_mse_error:.3f}.ckpt
     k: 5
-    mode: max
+    mode: min
     monitor_key: train_action_mse_error # switched from mean error
 dataloader:
-  batch_size: 4
+  batch_size: 16
   num_workers: 8
   persistent_workers: true
   pin_memory: true
