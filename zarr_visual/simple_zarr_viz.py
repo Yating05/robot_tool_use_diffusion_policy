@@ -8,6 +8,8 @@ def visualize_zarr_actions(zarr_file_path, visual_key='robot_act'):
     """
     # Load zarr data
     zarr_data = zarr.open(zarr_file_path, mode='r')
+    print(zarr_data.tree())
+
     robot_actions = np.array(zarr_data['data'][visual_key])
     
     print(f"Robot actions shape: {robot_actions.shape}")
@@ -32,5 +34,5 @@ def visualize_zarr_actions(zarr_file_path, visual_key='robot_act'):
     plt.show()
 
 if __name__ == "__main__":
-    zarr_file_path = "./data/victor/dataset_2025-07-07_16-05-35.zarr"
-    visualize_zarr_actions(zarr_file_path,visual_key='robot_obs')
+    zarr_file_path = "./data/victor/dataset_simple_2025-07-15_08-57-58.zarr.zip"
+    visualize_zarr_actions(zarr_file_path,visual_key='robot_act')

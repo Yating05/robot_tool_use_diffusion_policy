@@ -6,7 +6,8 @@ checkpoint:
     format_str: epoch={epoch:04d}-train_action_mse_error={train_action_mse_error:.3f}.ckpt
     k: 2
     mode: min
-    monitor_key: train_action_mse_error # switched from mean error
+    # monitor_key: train_action_mse_error # switched from mean error
+    monitor_key: val_loss # switched from mean error
 dataloader:
   batch_size: 4
   num_workers: 8
@@ -100,12 +101,12 @@ policy:
   shape_meta:
     action:
       shape:
-      - 11
+      - 18
       # TODO!
     obs: 
       robot_obs:
         shape:
-        - 21
+        - 35
         type: low_dim
       # image:
       #   shape:
@@ -116,11 +117,11 @@ policy:
 shape_meta:
   action:
     shape:
-    - 11
+    - 18
   obs:
     robot_obs:
       shape:
-      - 21
+      - 35
       type: low_dim
     # image:
     #   shape:
@@ -136,7 +137,7 @@ task:
     pad_after: 0
     pad_before: 0
     seed: 42
-    val_ratio: 0.02
+    val_ratio: 0.01
     zarr_path: data/victor/output_data_1.zarr
   # env_runner:
   #   _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner   # never actually gets used
@@ -161,11 +162,11 @@ task:
   shape_meta:
     action:
       shape:
-      - 11
+      - 18
     obs:
       robot_obs:
         shape:
-        - 21
+        - 35
         type: low_dim
       # image:
       #   shape:
@@ -175,7 +176,7 @@ task:
       #   type: rgb
 task_name: victor_diff
 training:
-  checkpoint_every: 25
+  checkpoint_every: 5
   debug: false
   device: cuda:0
   gradient_accumulate_every: 1
@@ -190,7 +191,7 @@ training:
   seed: 42
   tqdm_interval_sec: 1.0
   use_ema: true
-  val_every: 10
+  val_every: 5
 val_dataloader:
   batch_size: 4
   num_workers: 8
