@@ -34,26 +34,28 @@ class VictorDataset(BaseImageDataset):
         #     "image"     : Jpeg2k(level=50)
         # }
 
-        chunk_map = {
-            "robot_act" : (100, 11),
-            "robot_obs" : (100, 21),
-            "image"     : (10, 512, 512, 4)
-        }
+        # chunk_map = {
+        #     "robot_act" : (100, 11),
+        #     "robot_obs" : (100, 21),
+        #     "image"     : (10, 512, 512, 4)
+        # }
 
         self.replay_buffer = ReplayBuffer.copy_from_path(
             zarr_path, keys=["robot_act", "robot_obs", 'image'],
-            chunks=chunk_map,
+            # chunks=chunk_map,
             store=self.store,)
             # compressors=compressor_map)
         
         print(f"Loaded replay buffer with {self.replay_buffer}")
 
+        
 
+        # Get the mask for validation episodes
         val_mask = get_val_mask(
             n_episodes=self.replay_buffer.n_episodes, 
             val_ratio=val_ratio,
             seed=seed)
-        train_mask = ~val_mask
+        train_mask = ~val_mask 
         # train_mask = downsample_mask(
         #     mask=train_mask, 
         #     max_n=max_train_episodes, 

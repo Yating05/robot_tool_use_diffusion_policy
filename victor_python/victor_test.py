@@ -48,9 +48,9 @@ if __name__ == "__main__":
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # checkpoint_path = "./outputs/2025-07-07/14-36-26/checkpoints/latest.ckpt"
-    checkpoint_path = "./outputs/2025-07-07/16-22-50/checkpoints/latest.ckpt"
+    checkpoint_path = "./outputs/2025-07-18/17-11-11/checkpoints/latest.ckpt"
 
-    output_dir = "./outputs/2025-07-07/16-22-50/"
+    output_dir = "./outputs/2025-07-18/17-11-11/"
     payload = torch.load(open(checkpoint_path, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
     # cfg.policy.num_inference_steps = 16
@@ -68,16 +68,23 @@ if __name__ == "__main__":
     device = torch.device(device)
     policy.to(device)
     # policy.eval()
-    zf = zarr.open("./data/victor/dataset_2025-07-07_16-05-35.zarr", mode='r') 
+    zf = zarr.open("./data/victor/dataset_2025-07-18_15-58-14.zarr.zip", mode='r') 
 
 
     vic_acc = ObsAccumulator(2)
+    obs_keys = ['right_joint_positions', 'gripper_states',]
 
-    for i in range(696):
+    robot_obs = np.concatenate(
+        [np.array(zf[f"data/{key}"]) for key in obs_keys],
+        axis=-1).astype(np.float32)  # T, Do
+            
+
+
+    for i in range(191):
         print('iter:', i)
+
         vic_acc.put({
-            "image" : np.moveaxis(np.array(zf["data/image"][i]),-1,0),  # swap axis to make it fit the dataset shape
-            "robot_obs" : np.array(zf["data/robot_obs"][i])
+            key: np.array(zf[f"data/{key}"][i]) for key in obs_keys
         })
 
         # print(vic_acc.get())

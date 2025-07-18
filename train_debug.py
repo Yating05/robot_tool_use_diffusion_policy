@@ -19,7 +19,7 @@ OmegaConf.register_new_resolver("eval", eval, replace=True)
 @hydra.main(
     version_base=None,
     config_path=".",
-    config_name="victor_diffusion_policy_state"
+    config_name="victor_diffusion_policy_state_clean"
 )
 def main(cfg: OmegaConf):
     # print('the cfg is:')
@@ -30,7 +30,9 @@ def main(cfg: OmegaConf):
     cfg.training.device = "cuda:0"
     
     # Update dataset path to use the actual file (absolute path)
-    cfg.task.dataset.zarr_path = "/home/yatin/Documents/Wolverine/Research/force_tool_acoustic/diffusion_related/robot_tool_use_diffusion_policy/data/victor/dataset_simple_2025-07-15_08-57-58.zarr.zip"
+    folder_path = "/home/yatin/Documents/Projects/forceful_tool_use/diffusion_related/robot_tool_use_diffusion_policy/data/victor/"
+
+    cfg.task.dataset.zarr_path = folder_path +  "dataset_2025-07-18_15-58-14.zarr.zip"
 
     # cfg.task.dataset.zarr_path = "/data/victor/traj_1.zarr"
      # resolve immediately so all the ${now:} resolvers

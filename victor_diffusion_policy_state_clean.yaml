@@ -6,8 +6,8 @@ checkpoint:
     format_str: epoch={epoch:04d}-train_action_mse_error={train_action_mse_error:.3f}.ckpt
     k: 2
     mode: min
-    # monitor_key: train_action_mse_error # switched from mean error
-    monitor_key: val_loss # switched from mean error
+    monitor_key: val_loss # switched from mean error, train_action_mse_error
+
 dataloader:
   batch_size: 4
   num_workers: 8
@@ -41,7 +41,7 @@ multi_run:
   wandb_name_base: victor_diffusion_state
 n_action_steps: 4
 n_latency_steps: 0
-n_obs_steps: 1
+n_obs_steps: 2
 name: train_diffusion_unet_hybrid
 obs_as_global_cond: true
 optimizer:
@@ -72,28 +72,18 @@ policy:
   kernel_size: 5
   n_action_steps: 4
   n_groups: 8
-  n_obs_steps: 1
-  # noise_scheduler:
-  #   _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
-  #   beta_end: 0.02
-  #   beta_schedule: squaredcos_cap_v2
-  #   beta_start: 0.0001
-  #   clip_sample: true
-  #   num_train_timesteps: 100
-  #   prediction_type: epsilon
-  #   variance_type: fixed_small
+  n_obs_steps: 2
+
   noise_scheduler:
-    _target_: diffusers.schedulers.scheduling_ddim.DDIMScheduler
-    num_train_timesteps: 100
-    beta_start: 0.0001
+    _target_: diffusers.schedulers.scheduling_ddpm.DDPMScheduler
     beta_end: 0.02
-    # beta_schedule is important
-    # this is the best we found
     beta_schedule: squaredcos_cap_v2
-    clip_sample: True
-    set_alpha_to_one: True
-    steps_offset: 0
-    prediction_type: sample # or sample # or epsilon
+    beta_start: 0.0001
+    clip_sample: true
+    num_train_timesteps: 100
+    prediction_type: epsilon
+    variance_type: fixed_small
+
   num_inference_steps: 100
   obs_as_global_cond: true
   obs_encoder_group_norm: true
@@ -101,36 +91,36 @@ policy:
     action:
       shape:
       - 11
-      # TODO!
     obs: 
-      robot_obs:
+      right_joint_positions:
         shape:
-        - 24
+        - 7
         type: low_dim
-      # image:
-      #   shape:
-      #   - 3
-      #   - 2
-      #   - 2
-      #   type: rgb
+      gripper_states:
+        shape:
+        - 4
+        type: low_dim
+ 
+
 shape_meta:
   action:
     shape:
     - 11
   obs:
-    robot_obs:
+    right_joint_positions:
       shape:
-      - 24
+      - 7
       type: low_dim
-    # image:
-    #   shape:
-    #   - 3
-    #   - 2
-    #   - 2
-    #   type: rgb
+    gripper_states:
+      shape:
+      - 4
+      type: low_dim
+ 
+
+
 task:
   dataset:
-    _target_: diffusion_policy.dataset.victor_dataset.VictorDataset
+    _target_: diffusion_policy.dataset.victor_low_dim_dataset.VictorLowdimDataset
     horizon: 8
     max_train_episodes: 1
     pad_after: 0
@@ -138,41 +128,23 @@ task:
     seed: 42
     val_ratio: 0.05
     zarr_path: data/victor/output_data_1.zarr
-  # env_runner:
-  #   _target_: diffusion_policy.env_runner.pusht_image_runner.PushTImageRunner   # never actually gets used
-  #   fps: 10
-  #   legacy_test: true
-  #   max_steps: 300
-  #   n_action_steps: 8
-  #   n_envs: null
-  #   n_obs_steps: 2
-  #   n_test: 50
-  #   n_test_vis: 4
-  #   n_train: 6
-  #   n_train_vis: 2
-  #   past_action: false
-  #   test_start_seed: 100000
-  #   train_start_seed: 0
-  # image_shape:
-  # - 3
-  # - 2
-  # - 2
+
+
   name: victor_diff
   shape_meta:
     action:
       shape:
       - 11
     obs:
-      robot_obs:
+      right_joint_positions:
         shape:
-        - 24
+        - 7
         type: low_dim
-      # image:
-      #   shape:
-      #   - 3
-      #   - 2
-      #   - 2
-      #   type: rgb
+      gripper_states:
+        shape:
+        - 4
+        type: low_dim
+    
 task_name: victor_diff
 training:
   checkpoint_every: 5
