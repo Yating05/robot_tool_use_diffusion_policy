@@ -1,6 +1,13 @@
 import zarr
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import and register the imagecodecs
+from diffusion_policy.codecs.imagecodecs_numcodecs import register_codecs
+register_codecs()
 
 def visualize_zarr_actions(zarr_file_path, visual_key='robot_act'):
     """
@@ -35,5 +42,7 @@ def visualize_zarr_actions(zarr_file_path, visual_key='robot_act'):
     plt.show()
 
 if __name__ == "__main__":
-    zarr_file_path = "./data/victor/dataset_2025-07-17_14-08-14.zarr.zip"
-    visualize_zarr_actions(zarr_file_path,visual_key='robot_obs')
+    # zarr_file_path = "./data/victor/dataset_2025-07-21_12-58-22.zarr.zip"
+    zarr_file_path = "./data/victor/dspro_07_18.zarr.zip"
+    # zarr_file_path = "./data/victor/dataset_2025-07-21_13-07-55.zarr.zip"
+    visualize_zarr_actions(zarr_file_path,visual_key='robot_act')

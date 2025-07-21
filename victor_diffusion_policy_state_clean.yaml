@@ -100,7 +100,10 @@ policy:
         shape:
         - 4
         type: low_dim
- 
+      wrench:
+        shape:
+        - 6
+        type: low_dim
 
 shape_meta:
   action:
@@ -115,6 +118,10 @@ shape_meta:
       shape:
       - 4
       type: low_dim
+    wrench:
+      shape:
+      - 6
+      type: low_dim
  
 
 
@@ -128,6 +135,8 @@ task:
     seed: 42
     val_ratio: 0.05
     zarr_path: data/victor/output_data_1.zarr
+    act_keys: ['robot_act']
+    obs_keys: ['right_joint_positions', 'gripper_states', 'wrench']
 
 
   name: victor_diff
@@ -143,6 +152,10 @@ task:
       gripper_states:
         shape:
         - 4
+        type: low_dim
+      wrench:
+        shape:
+        - 6
         type: low_dim
     
 task_name: victor_diff

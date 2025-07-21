@@ -48,9 +48,9 @@ if __name__ == "__main__":
     pathlib.Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # checkpoint_path = "./outputs/2025-07-07/14-36-26/checkpoints/latest.ckpt"
-    checkpoint_path = "./outputs/2025-07-18/17-11-11/checkpoints/latest.ckpt"
+    checkpoint_path = "./outputs/2025-07-21/13-08-30/checkpoints/epoch=0425-train_action_mse_error=0.032.ckpt"
 
-    output_dir = "./outputs/2025-07-18/17-11-11/"
+    output_dir = "./outputs/2025-07-21/13-08-30/"
     payload = torch.load(open(checkpoint_path, 'rb'), pickle_module=dill)
     cfg = payload['cfg']
     # cfg.policy.num_inference_steps = 16
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     device = torch.device(device)
     policy.to(device)
     # policy.eval()
-    zf = zarr.open("./data/victor/dataset_2025-07-18_15-58-14.zarr.zip", mode='r') 
+    zf = zarr.open("./data/victor/dataset_2025-07-21_13-07-55.zarr.zip", mode='r') 
 
 
     vic_acc = ObsAccumulator(2)

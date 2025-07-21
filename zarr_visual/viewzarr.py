@@ -2,11 +2,20 @@ import zarr
 import zarr.errors
 import zarr.storage
 import numpy as np
+import sys
+import os
+
+# Add the parent directory to sys.path to import diffusion_policy modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Import and register the imagecodecs
+from diffusion_policy.codecs.imagecodecs_numcodecs import register_codecs
+register_codecs()
 
 if __name__ == "__main__":
     np.set_printoptions(suppress=True, precision=5)
     # dirf = zarr.open("baselines/diffusion_policy/pusht_cchi_v7_replay.zarr.zip", mode='r')
-    dirf = zarr.open("./data/victor/dataset_2025-07-15_19-03-32.zarr.zip", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
+    dirf = zarr.open("./data/victor/dspro_07_18.zarr.zip", mode='r') #"data/pusht/pusht_cchi_v7_replay.zarr"
     # Updated to use a working zarr file - output_data_1.zarr has compatibility issues with zarr v3 format
     # dirf = zarr.open("./data/victor/output.zarr.zip", mode='r')  # This file works
     # dirf = zarr.open("data/pusht/pusht_cchi_v7_replay.zarr", mode='r') #
