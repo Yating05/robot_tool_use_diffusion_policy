@@ -7,7 +7,7 @@ shape_meta:
     obs: 
       robot_obs:
         shape:
-        - 22
+        - 15
         type: low_dim
 
 checkpoint:
@@ -113,6 +113,24 @@ policy:
   obs_encoder_group_norm: true
   shape_meta: ${shape_meta}
   
+  obs_encoder:
+    _target_: diffusion_policy.model.vision.forceful_obs_encoder.MultiModalEncoder
+    shape_meta: ${shape_meta}
+
+
+    fusion_mode: 'modality-attention'
+    num_heads: 8
+    position_encoding: 'sinusoidal'
+    vision_encoder_cfg:
+      model_name: 'vit_base_patch16_clip_224.openai'
+     
+    audio_encoder_cfg:
+      model_name: 'ast'
+     
+      
+    wrench_encoder_cfg:
+      model_name: 'lstm'
+
 
 task:
   dataset:
@@ -125,7 +143,7 @@ task:
     val_ratio: 0.05
     zarr_path: data/victor/output_data_1.zarr
     act_keys: ['robot_act']
-    obs_keys: ['robot_obs']
+    obs_keys: ['robot_obs','wrench']
 
 
   name: victor_diff
