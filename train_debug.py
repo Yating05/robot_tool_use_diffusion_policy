@@ -32,8 +32,8 @@ def main(cfg: OmegaConf):
     # Update dataset path to use the actual file (absolute path)
     folder_path = "/home/yatin/Documents/Projects/forceful_tool_use/diffusion_related/robot_tool_use_diffusion_policy/data/victor/"
 
-    cfg.task.dataset.zarr_path = folder_path +  "dataset_2025-07-21_13-07-55.zarr.zip"
-    # cfg.task.dataset.zarr_path = folder_path +  "dspro_07_18.zarr.zip"
+    # cfg.task.dataset.zarr_path = folder_path +  "dataset_2025-07-21_13-07-55.zarr.zip"
+    cfg.task.dataset.zarr_path = folder_path +  "dspro_07_22_no_wrench.zarr.zip"
 
     # cfg.task.dataset.zarr_path = "/data/victor/traj_1.zarr"
      # resolve immediately so all the ${now:} resolvers
