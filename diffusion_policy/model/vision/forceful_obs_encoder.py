@@ -18,7 +18,7 @@ from einops import rearrange
 
 from diffusion_policy.common.pytorch_util import replace_submodules
 from diffusion_policy.model.common.module_attr_mixin import ModuleAttrMixin
-from diffusion_policy.model.vision.audio_encoder import AudioEncoder
+# from diffusion_policy.model.vision.audio_encoder import AudioEncoder
 
 logger = logging.getLogger(__name__)
 
